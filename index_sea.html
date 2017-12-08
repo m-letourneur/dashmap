@@ -1,0 +1,327 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+		<meta charset="utf-8">
+		<title>D3 World Map</title>
+		<style>
+
+		.tooltip {
+			position: absolute;
+			line-height: 1;
+			font-weight: bold;
+			padding: 12px;
+			background: rgba(0, 0, 0, 0.8);
+			color: #fff;
+			border-radius: 2px;
+		}
+
+		.gender_demo {
+			position: absolute;
+			line-height: 1;
+			font-weight: bold;
+			padding: 12px;
+			background: rgba(0, 0, 0, 0.8);
+			color: #fff;
+			border-radius: 2px;
+		}
+
+		path:hover {
+			fill: steelblue;
+		}
+
+/*		.bb_chart{
+			position: absolute;
+			top: 120px;
+			left: 0px;
+
+		}*/
+		svg .down {
+			transform:translate(0, 360px);
+			transition:transform 0.3s;
+		}
+
+	</style>
+
+	<script src="http://d3js.org/d3.v4.min.js"></script>
+	<script src="http://d3js.org/topojson.v0.min.js"></script>
+	<script src="https://d3js.org/d3-geo.v1.min.js"></script>
+
+	<link href="billboard/billboard.css" rel="stylesheet">
+	<script src="billboard/billboard.js"></script>
+</head>
+<body>
+	<script type="text/javascript">
+
+		var dict_stages_percent_per_country = {
+			"Malaysia": {
+				"activity" : [0.696262,0.185358,0.049065,0.031931,0.037383],
+				"fibrosis" : [0.522586, 0.253115, 0.077882, 0.084112, 0.062305],
+				"steatosis" : [0.331465,0.313245,0.157673,0.197617]
+
+			},
+			"Hong Kong": {
+				"activity" : [1],
+				"fibrosis" : [0.571429, 0.428571],
+				"steatosis" : [0.727273,0.181818,0.045455,0.045455]
+			},
+			"Singapore": {
+				"activity" : [0.764398,0.145288,0.031414,0.02356,0.03534],
+				"fibrosis" : [0.675393, 0.196335, 0.045812, 0.04712, 0.03534],
+				"steatosis" : [0.45512,0.243995,0.141593,0.159292]
+
+			},
+			"Philippines": {
+				"activity" : [0.636364,0.232586,0.044864,0.044864,0.041322],
+				"fibrosis" : [0.687131, 0.174734, 0.047226, 0.05549, 0.035419],
+				"steatosis" : [0.25974,0.279811,0.184179,0.276269]
+
+			},
+			"Thailand": {
+				"activity" : [0.652722, 0.205731, 0.043553, 0.041834, 0.05616],
+				"fibrosis" : [0.531232,0.204011,0.068195,0.082521,0.11404],
+				"steatosis" : [0.325866,0.252546,0.179226,0.242363]
+
+			},
+			"India": {
+				"activity" : [1],
+				"fibrosis" : [1],
+				"steatosis" : []
+
+			}
+		}
+
+			//Country code
+			d3.csv("country_code.csv", function(country_code){
+				var width = 900;
+				var height = 600;
+
+				var projection = d3.geoMercator();
+
+				var svg = d3.select("body").append("svg")
+				.attr("width", width)
+				.attr("height", height);
+				var path = d3.geoPath()
+				.projection(projection);
+				var g = svg.append("g");
+
+				function get_country_name(m49_code){
+					var country_name = 'Not found';
+					for (i=0; i < country_code.length; i++) {
+						if(country_code[i]["M49 code"] == m49_code){
+							country_name = country_code[i]["Country or Area"];
+							break;
+						}
+					}
+					return country_name;
+				}       
+
+				var tooltip = d3.select("body")
+				.append("div")
+				.attr("class", "tooltip")
+				.style("opacity", 0);
+
+				d3.json("world-110m2.json", function(error, topology) {
+					g.selectAll("path")
+					.data(topojson.object(topology, topology.objects.countries)
+						.geometries)
+					.enter()
+					.append("path")
+					.attr("d", path)
+					.attr("fill", "#e5e5e5")
+					.attr("stroke", "white")
+					.attr("stroke-width", 0.4)
+					.on("mouseover", function(d, ind) {
+						console.log(topology.objects.countries.geometries[ind]['id'])
+						var m49_code = topology.objects.countries.geometries[ind]['id'];
+						var country_name = get_country_name(m49_code)
+						tooltip.html("<b>" + country_name  + "<br/> ")
+						.style("left", (d3.event.pageX) + 20 + "px")
+						.style("top", (d3.event.pageY) - 20 + "px");
+						tooltip.transition()
+						.duration(200)
+						.style("opacity", .9)
+						.transition()
+						.duration(2000)
+						.style("opacity", 0.);
+					})
+					.on("click", function(d, ind){
+						var m49_code = topology.objects.countries.geometries[ind]['id'];
+						var country_name = get_country_name(m49_code);
+
+						draw_barplot(country_name);
+						g.selectAll("path")
+						.transition()
+						.duration(500)
+						.attr('fill', '#e5e5e5');
+
+						d3.select(this)
+						.transition()
+						.duration(50)
+						.attr("fill", function(d){
+							console.log(d3.select(this).attr("fill"));
+							if(d3.select(this).attr("fill")=='orange' || d3.select(this).attr("fill")=='rgb(255, 165, 0)' ){
+								console.log(d3.select(this).attr("fill"));
+								return "#e5e5e5";
+							}else{
+								console.log("not orange :" + d3.select(this).attr("fill"));
+								return 'orange';
+							}
+						})
+						.attr("stroke", "white");
+
+
+							// var gender_demo = get_gender_demo(country_name);
+							// console.log(gender_demo)
+
+							// d3.selectAll('.gender_demo').remove()
+							// var gender_demo_box = d3.select("body")
+							// .append("div")
+							// .attr("class", "gender_demo")
+							// .style("opacity", 0);
+
+							// gender_demo_box.html('Demographics - Gender <br> Total number of subjects ' + Math.floor(gender_demo[2]) + '<br>' + 'Female ' +  Math.floor(gender_demo[0]*100) + '% <br> Male ' + Math.floor(gender_demo[1]*100) + '%')
+							// .style("left", 0 + "px")
+							// .style("top", 0 + "px")
+							// .transition()
+							// .duration(200)
+							// .style("opacity", .9);
+						});
+				});
+
+			 // zoom and pan
+			 var zoom = d3.zoom()
+			 .scaleExtent([1, 1.4])
+			 .translateExtent([[-50, -100], [width + 90, height + 100]])
+			 .on("zoom",function() {
+			 	g.attr("transform", "scale(" + 4 + ")translate(" + -650 + "," + -150 + ")" + d3.event.transform);
+				// g.attr("transform", d3.event.transform);
+				g.selectAll("path")  
+				.attr("d", path.projection(projection)); 
+			})
+			 svg.call(zoom)
+			 .on("dblclick.zoom", null);
+
+
+			 g.transition()
+			 // .duration(4000)
+			 .duration(0)
+			 .attr("transform", "scale(" + 4 + ")translate(" + -650 + "," + -150 + ")");
+
+
+			 //Extract info form csv file
+			 function get_gender_demo(country_name){
+			 	var per_female=0, per_male=0, total = 0;
+			 	var gender_demo = [];
+			 	console.log('gender_demographics ' + gender_demographics[0]);
+			 	for (i=0; i < gender_demographics.length; i++) {
+			 		if(gender_demographics[i]['country'] == country_name && gender_demographics[i]['sex'] == 'F'){
+			 			per_female = gender_demographics[i]['percent'];
+			 		}
+			 		if(gender_demographics[i]['country'] == country_name && gender_demographics[i]['sex'] == 'M'){
+			 			per_male = gender_demographics[i]['percent'];
+			 			total = gender_demographics[i]['total'];
+			 		}
+			 	}
+			 	gender_demo = [per_female, per_male, total];	
+			 	return gender_demo;
+			 }
+
+			 function draw_barplot(country_name){
+			 	g_plot = svg.append('g')
+			 	.attr('id', 'chart')
+			 	.attr('class', 'down')
+			 	var ar = dict_stages_percent_per_country
+			 	var arr = ar[country_name]
+			 	var xaxis = ['x', 'S0', 'S1', 'S2', 'S3']
+			 	console.log(arr)
+			 	var arrr = Object.assign([], arr.steatosis);
+			 	console.log(arrr)
+			 	arrr.unshift('steatosis')
+			 	var chart = bb.generate({
+			 		bindto: "#chart",
+			 		title: {
+			 			text: "Steatosis grades in "+ country_name
+			 		},
+			 		data: {
+			 			"x" : "x",
+			 			type: "bar",
+			 			columns: [
+			 			xaxis,
+			 			arrr
+			 			],
+			 			"labels": {
+			 				"format": {
+			 					"steatosis": function (x) {
+			 						return d3.format("." + "2" + "%")(x)
+			 					},
+			 					"activity": function (x) {
+			 						return d3.format("." + "2" + "%")(x)
+			 					},
+			 					"fibrosis": function (x) {
+			 						return d3.format("." + "2" + "%")(x)
+			 					}
+			 				}
+			 			},
+			 			"axes": {
+			 				"steatosis": "y",
+			 				"activity": "y",
+			 				"fibrosis": "y"
+			 			}
+			 		},
+			 		"axis": {
+			 			"y": {
+			 				"label": "Proportion of the cohort",
+			 				"max": 0.5,
+			 				"min": 0,
+			 				"padding": {
+			 					"top": 0,
+			 					"bottom": 0
+			 				}
+			 			},
+			 			"x": {
+			 				"type": "category"
+			 			}
+			 		},
+			 		"size": {
+			 			"height": 240,
+			 			"width": 480
+			 		},
+			 		"bar": {
+			 			"width": {
+			 				"ratio": 0.5
+			 			}
+			 		},
+			 		"zoom": {
+			 			"enabled": false
+			 		}
+			 	});
+			 	g_plot.selectAll('svg')
+			 	.attr('class', 'bb_chart')
+			 	.transition()
+			 	.duration(10)
+			 	.style('top', 120)
+			 	.style('left', 0);
+			 	// svg.append('g')
+			 	// .attr('id', 'chart1')
+			 	// .attr('class', 'bb_chart');
+			 	// var ar = [0.2, 0.4, 0.25, 0.15];
+			 	// ar.unshift(country_name)
+			 	// var chart = bb.generate({
+			 	// 	bindto: "#chart1",
+			 	// 	data: {
+			 	// 		type: "bar",
+			 	// 		columns: [
+			 	// 		// ar,
+			 	// 		["data2", 130, 100, 140, 35, 110, 50]
+			 	// 		]
+			 	// 	},
+			 	// 	"size": {
+			 	// 		"height": 240,
+			 	// 		"width": 480
+			 	// 	}
+			 	// });
+			 }
+			})
+		</script>
+	</body>
+	</html>
