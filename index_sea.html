@@ -15,28 +15,12 @@
 			border-radius: 2px;
 		}
 
-		.gender_demo {
-			position: absolute;
-			line-height: 1;
-			font-weight: bold;
-			padding: 12px;
-			background: rgba(0, 0, 0, 0.8);
-			color: #fff;
-			border-radius: 2px;
-		}
-
 		path:hover {
 			fill: steelblue;
 		}
 
-/*		.bb_chart{
-			position: absolute;
-			top: 120px;
-			left: 0px;
-
-		}*/
 		svg .down {
-			transform:translate(0, 360px);
+			transform:translate(0, 400px);
 			transition:transform 0.3s;
 		}
 
@@ -102,25 +86,14 @@
 				.attr("height", height);
 				var path = d3.geoPath()
 				.projection(projection);
-				var g = svg.append("g");
-
-				function get_country_name(m49_code){
-					var country_name = 'Not found';
-					for (i=0; i < country_code.length; i++) {
-						if(country_code[i]["M49 code"] == m49_code){
-							country_name = country_code[i]["Country or Area"];
-							break;
-						}
-					}
-					return country_name;
-				}       
+				var g = svg.append("g");      
 
 				var tooltip = d3.select("body")
 				.append("div")
 				.attr("class", "tooltip")
 				.style("opacity", 0);
 
-				d3.json("world-110m2.json", function(error, topology) {
+				d3.json("world_hires.json", function(error, topology) {
 					g.selectAll("path")
 					.data(topojson.object(topology, topology.objects.countries)
 						.geometries)
@@ -129,11 +102,10 @@
 					.attr("d", path)
 					.attr("fill", "#e5e5e5")
 					.attr("stroke", "white")
-					.attr("stroke-width", 0.4)
+					.attr("stroke-width", 0.15)
 					.on("mouseover", function(d, ind) {
-						console.log(topology.objects.countries.geometries[ind]['id'])
-						var m49_code = topology.objects.countries.geometries[ind]['id'];
-						var country_name = get_country_name(m49_code)
+						console.log(topology.objects.countries.geometries[ind].properties.name)
+						var country_name = topology.objects.countries.geometries[ind].properties.name
 						tooltip.html("<b>" + country_name  + "<br/> ")
 						.style("left", (d3.event.pageX) + 20 + "px")
 						.style("top", (d3.event.pageY) - 20 + "px");
@@ -145,14 +117,14 @@
 						.style("opacity", 0.);
 					})
 					.on("click", function(d, ind){
-						var m49_code = topology.objects.countries.geometries[ind]['id'];
-						var country_name = get_country_name(m49_code);
-
+						var country_name = topology.objects.countries.geometries[ind].properties.name
 						draw_barplot(country_name);
 						g.selectAll("path")
 						.transition()
 						.duration(500)
-						.attr('fill', '#e5e5e5');
+						.attr('fill', '#e5e5e5')
+						.attr('stroke', 'white')
+						.attr('stroke-width', 0.15);
 
 						d3.select(this)
 						.transition()
@@ -167,33 +139,35 @@
 								return 'orange';
 							}
 						})
-						.attr("stroke", "white");
-
-
-							// var gender_demo = get_gender_demo(country_name);
-							// console.log(gender_demo)
-
-							// d3.selectAll('.gender_demo').remove()
-							// var gender_demo_box = d3.select("body")
-							// .append("div")
-							// .attr("class", "gender_demo")
-							// .style("opacity", 0);
-
-							// gender_demo_box.html('Demographics - Gender <br> Total number of subjects ' + Math.floor(gender_demo[2]) + '<br>' + 'Female ' +  Math.floor(gender_demo[0]*100) + '% <br> Male ' + Math.floor(gender_demo[1]*100) + '%')
-							// .style("left", 0 + "px")
-							// .style("top", 0 + "px")
-							// .transition()
-							// .duration(200)
-							// .style("opacity", .9);
-						});
+						.attr("stroke", function(d){
+							console.log(d3.select(this).attr("fill"));
+							if(d3.select(this).attr("fill")=='orange' || d3.select(this).attr("fill")=='rgb(255, 165, 0)' ){
+								console.log(d3.select(this).attr("stroke"));
+								return 'white';
+							}else{
+								console.log("not orange :" + d3.select(this).attr("stroke"));
+								return 'orange';
+							}
+						})
+						.attr("stroke-width", function(d){
+							console.log(d3.select(this).attr("fill"));
+							if(d3.select(this).attr("fill")=='orange' || d3.select(this).attr("fill")=='rgb(255, 165, 0)' ){
+								console.log(d3.select(this).attr("stroke-width"));
+								return 0.15;
+							}else{
+								console.log("not orange :" + d3.select(this).attr("stroke-width"));
+								return 0.4;
+							}
+						})
+					});
 				});
 
 			 // zoom and pan
 			 var zoom = d3.zoom()
-			 .scaleExtent([1, 1.4])
+			 .scaleExtent([1, 1.6])
 			 .translateExtent([[-50, -100], [width + 90, height + 100]])
 			 .on("zoom",function() {
-			 	g.attr("transform", "scale(" + 4 + ")translate(" + -650 + "," + -150 + ")" + d3.event.transform);
+			 	g.attr("transform", "scale(" + 6 + ")translate(" + -690 + "," + -175 + ")" + d3.event.transform);
 				// g.attr("transform", d3.event.transform);
 				g.selectAll("path")  
 				.attr("d", path.projection(projection)); 
@@ -205,26 +179,8 @@
 			 g.transition()
 			 .duration(4000)
 			 // .duration(0)
-			 .attr("transform", "scale(" + 4 + ")translate(" + -650 + "," + -150 + ")");
+			 .attr("transform", "scale(" + 6 + ")translate(" + -690 + "," + -175 + ")");
 
-
-			 //Extract info form csv file
-			 function get_gender_demo(country_name){
-			 	var per_female=0, per_male=0, total = 0;
-			 	var gender_demo = [];
-			 	console.log('gender_demographics ' + gender_demographics[0]);
-			 	for (i=0; i < gender_demographics.length; i++) {
-			 		if(gender_demographics[i]['country'] == country_name && gender_demographics[i]['sex'] == 'F'){
-			 			per_female = gender_demographics[i]['percent'];
-			 		}
-			 		if(gender_demographics[i]['country'] == country_name && gender_demographics[i]['sex'] == 'M'){
-			 			per_male = gender_demographics[i]['percent'];
-			 			total = gender_demographics[i]['total'];
-			 		}
-			 	}
-			 	gender_demo = [per_female, per_male, total];	
-			 	return gender_demo;
-			 }
 
 			 function draw_barplot(country_name){
 			 	g_plot = svg.append('g')
@@ -283,8 +239,8 @@
 			 			}
 			 		},
 			 		"size": {
-			 			"height": 220,
-			 			"width": 460
+			 			"height": 200,
+			 			"width": 400
 			 		},
 			 		"bar": {
 			 			"width": {
@@ -301,25 +257,6 @@
 			 	.duration(0)
 			 	.style('top', 120)
 			 	.style('left', 0);
-			 	// svg.append('g')
-			 	// .attr('id', 'chart1')
-			 	// .attr('class', 'bb_chart');
-			 	// var ar = [0.2, 0.4, 0.25, 0.15];
-			 	// ar.unshift(country_name)
-			 	// var chart = bb.generate({
-			 	// 	bindto: "#chart1",
-			 	// 	data: {
-			 	// 		type: "bar",
-			 	// 		columns: [
-			 	// 		// ar,
-			 	// 		["data2", 130, 100, 140, 35, 110, 50]
-			 	// 		]
-			 	// 	},
-			 	// 	"size": {
-			 	// 		"height": 240,
-			 	// 		"width": 480
-			 	// 	}
-			 	// });
 			 }
 			})
 		</script>
