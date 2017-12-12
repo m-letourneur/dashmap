@@ -1,0 +1,27 @@
+.tooltip {
+	position: absolute;
+	line-height: 1;
+	font-weight: bold;
+	padding: 12px;
+	background: rgba(0, 0, 0, 0.8);
+	color: #fff;
+	border-radius: 2px;
+}
+
+path{
+	-o-transition:fill 1s ease-out, background 1s ease-in;
+	-ms-transition:fill 1s ease-out, background 1s ease-in;
+	-moz-transition:fill 1s ease-out, background 1s ease-in;
+	-webkit-transition:fill 1s ease-out, background 1s ease-in;
+	/* ...and now for the proper property */
+	transition:fill 1s ease-out, background 1s ease-in;
+}
+
+path:hover {
+	fill: steelblue;
+}
+
+svg .down {
+	transform:translate(0, 400px);
+	transition:transform 0.3s;
+}
