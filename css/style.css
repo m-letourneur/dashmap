@@ -24,9 +24,42 @@ path:hover {
 	fill: steelblue;
 }
 
+.labels{
+	font-size: 2px;
+	font-weight: normal;
+	font-family: "Verdana";
+	fill: #bababa;	
+}
+
+.labels:hover{
+	fill: steelblue;
+}
+
 svg .down {
 	transform:translate(0, 400px);
 	transition:transform 0.3s;
+}
+
+/* reset button */
+.svg_resetbtn {
+	position: absolute;
+}
+
+.resetbtn {
+	/*background-color: #4CAF50;*/
+	background-color: rgba(0, 0, 0, 0.8);
+	color: white;
+	padding: 12px;
+	font-family: "Verdana";
+	font-size: 12px;
+	border: none;
+	cursor: pointer;
+	opacity: 0.9;
+}
+
+/* Dropdown button on hover & focus */
+.resetbtn:hover, .resetbtn:focus {
+	background-color: steelblue;
 }
 
 /*Drop down*/

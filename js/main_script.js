@@ -77,6 +77,7 @@ d3.json("world_hires.json", function(error, topology) {
 			return "#e5e5e5";
 		}
 	})
+	.attr("countryclass", country_name)
 	.attr("stroke", "white")
 	.attr("stroke-width", 0.15)
 	.on("mouseover", function(d, ind) {
@@ -110,55 +111,73 @@ d3.json("world_hires.json", function(error, topology) {
 		.transition()
 		.duration(50)
 		.attr("fill", function(d, ind){
-			console.log(d3.select(this).attr("fill"));
 			if(d3.select(this).attr("fill")=='orange' || d3.select(this).attr("fill")=='rgb(255, 165, 0)' ){
-				console.log(d3.select(this).attr("fill"));
-				console.log(d.country)
 				if(dda_countries.includes(d.country)){
 					return "#cacaca";
 				}else{
 					return "#e5e5e5";
 				}
 			}else{
-				console.log("not orange :" + d3.select(this).attr("fill"));
 				return 'orange';
 			}
 		})
 		.attr("stroke", function(d){
-			console.log(d3.select(this).attr("fill"));
 			if(d3.select(this).attr("fill")=='orange' || d3.select(this).attr("fill")=='rgb(255, 165, 0)' ){
-				console.log(d3.select(this).attr("stroke"));
 				return 'white';
 			}else{
-				console.log("not orange :" + d3.select(this).attr("stroke"));
 				return 'orange';
 			}
 		})
 		.attr("stroke-width", function(d){
-			console.log(d3.select(this).attr("fill"));
 			if(d3.select(this).attr("fill")=='orange' || d3.select(this).attr("fill")=='rgb(255, 165, 0)' ){
-				console.log(d3.select(this).attr("stroke-width"));
 				return 0.15;
 			}else{
-				console.log("not orange :" + d3.select(this).attr("stroke-width"));
 				return 0.4;
 			}
 		})
 	});
-});
-
+	g.selectAll("labels")
+	.data(topojson.object(topology, topology.objects.countries)
+		.geometries)
+	.enter()
+	.append("text")
+	.attr('class', 'labels')
+	.text(function(d, ind){
+		d.country = topology.objects.countries.geometries[ind].properties.name;
+		if('Hong Kong' == d.country || 'Singapore' == d.country ){
+			return d.country;	
+		}else{
+			return "";
+		}
+	})
+	.attr("x", function(d){
+		if (isNaN(path.centroid(d)[0])){
+			console.log(d.country);
+			return 450;
+		}else{		
+			return 2 + path.centroid(d)[0] + "px";
+		}
+	})
+	.attr("y", function(d){
+		if (isNaN(path.centroid(d)[1])){
+			console.log(d.country);
+			return 450;
+		}else{		
+			return 2 + path.centroid(d)[1] + "px";
+		}
+	})
+})
  // zoom and pan
  var zoom = d3.zoom()
- .scaleExtent([1, 1.6])
+ .scaleExtent([1, 1])
  .translateExtent([[-50, -100], [width + 90, height + 100]])
  .on("zoom",function() {
- 	g.attr("transform", "scale(" + 6 + ")translate(" + -690 + "," + -175 + ")" + d3.event.transform);
-	g.selectAll("path")  
-	.attr("d", path.projection(projection)); 
-})
+ 	g.attr("transform", "scale(" + 7 + ")translate(" + -720 + "," + -185 + ")" + d3.event.transform);
+ 	g.selectAll("path")  
+ 	.attr("d", path.projection(projection)); 
+ })
  svg.call(zoom)
  .on("dblclick.zoom", null);
-
 
  function draw_barplot(country_name, disease_name){
  	g_plot = svg.append('g')
@@ -167,9 +186,7 @@ d3.json("world_hires.json", function(error, topology) {
  	var ar = dict_stages_percent_per_country;
  	var arr = ar[country_name];
  	var xaxis = xaxes[disease_name];
- 	console.log(arr);
  	var arrr = Object.assign([], arr[disease_name]);
- 	console.log(arrr);
  	arrr.unshift(disease_name);
  	var chart = bb.generate({
  		bindto: "#chart",
@@ -237,12 +254,19 @@ d3.json("world_hires.json", function(error, topology) {
  	.style('left', 0);
  }
 
+// Reset button
+var svg_resetbtn = d3.select('body').append('div')
+.attr('class', 'svg_resetbtn');
+svg_resetbtn.html("<button onclick='resetCallback()' class='resetbtn'>Reset</button>");
+svg_resetbtn.style("left", 755 + "px")
+.style("top", 20 + "px");
+
 // Dropdown button 
 var svg_dropbtn = d3.select('body').append('div')
 .attr('class', 'svg_dropbtn');
 svg_dropbtn.html("<div class='dropdown'> <button onclick='dropdownCallback()'' class='dropbtn'>Disease</button> <div id='dropdown-instance' class='dropdown-disease'> <a href='#' id='steatosis' class='disease_notselected'>Steatosis</a> <a href='#' id='activity' class='disease_notselected'>Activity</a> <a href='#' id='fibrosis' class='disease_notselected'>Fibrosis</a></div></div>");
-svg_dropbtn.style("left", 850 + "px")
-.style("top", 270 + "px");
+svg_dropbtn.style("left", 825 + "px")
+.style("top", 20 + "px");
 
 d3.selectAll('.disease_notselected')
 .on('click', function(){
@@ -252,6 +276,12 @@ d3.selectAll('.disease_notselected')
 	draw_barplot(country_name, disease_name);
 })
 
+/* When the user clicks on the button, reset the pan and zoom in the map*/
+function resetCallback(){
+	g.transition()
+	.duration(1000)
+	.attr("transform", "scale(" + 7 + ")translate(" + -720 + "," + -185 + ")");
+}
 /* When the user clicks on the button, 
 toggle between hiding and showing the dropdown content */
 function dropdownCallback() {
@@ -274,6 +304,6 @@ window.onclick = function(event) {
 }
 
 // Initiate zoom in
- g.transition()
- .duration(4000)
- .attr("transform", "scale(" + 6 + ")translate(" + -690 + "," + -175 + ")");
+g.transition()
+.duration(4000)
+.attr("transform", "scale(" + 7 + ")translate(" + -720 + "," + -185 + ")");
