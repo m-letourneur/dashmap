@@ -51,7 +51,9 @@ var projection = d3.geoMercator();
 
 var svg = d3.select("body").append("svg")
 .attr("width", width)
-.attr("height", height);
+.attr("height", height)
+.style('display', 'block')
+.style('margin', 'auto');
 var path = d3.geoPath()
 .projection(projection);
 var g = svg.append("g");      
@@ -259,14 +261,16 @@ var svg_resetbtn = d3.select('body').append('div')
 .attr('class', 'svg_resetbtn');
 svg_resetbtn.html("<button onclick='resetCallback()' class='resetbtn'>Reset</button>");
 svg_resetbtn.style("left", 755 + "px")
-.style("top", 20 + "px");
+.style("top", 20 + "px")
+.style("opacity", 0);
 
 // Dropdown button 
 var svg_dropbtn = d3.select('body').append('div')
 .attr('class', 'svg_dropbtn');
 svg_dropbtn.html("<div class='dropdown'> <button onclick='dropdownCallback()'' class='dropbtn'>Disease</button> <div id='dropdown-instance' class='dropdown-disease'> <a href='#' id='steatosis' class='disease_notselected'>Steatosis</a> <a href='#' id='activity' class='disease_notselected'>Activity</a> <a href='#' id='fibrosis' class='disease_notselected'>Fibrosis</a></div></div>");
 svg_dropbtn.style("left", 825 + "px")
-.style("top", 20 + "px");
+.style("top", 20 + "px")
+.style("opacity", 0);
 
 d3.selectAll('.disease_notselected')
 .on('click', function(){
@@ -307,3 +311,11 @@ window.onclick = function(event) {
 g.transition()
 .duration(4000)
 .attr("transform", "scale(" + 7 + ")translate(" + -720 + "," + -185 + ")");
+
+svg_dropbtn.transition()
+.duration(4000)
+.style("opacity", 1);
+svg_resetbtn.transition()
+.duration(4000)
+.style("opacity", 1);
+
